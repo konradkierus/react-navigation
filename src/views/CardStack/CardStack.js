@@ -127,6 +127,9 @@ class CardStack extends React.Component<Props> {
   } = {};
 
   componentWillReceiveProps(props: Props) {
+    if (this.props.index !== props.index) {
+      this.previousProps = this.props;
+    }
     if (props.screenProps !== this.props.screenProps) {
       this._screenDetails = {};
     }
@@ -421,8 +424,8 @@ class CardStack extends React.Component<Props> {
     /* $FlowFixMe */
     return TransitionConfigs.getTransitionConfig(
       this.props.transitionConfig,
-      {},
-      {},
+      {...this.props},
+      {...this.previousProps},
       isModal
     );
   };
