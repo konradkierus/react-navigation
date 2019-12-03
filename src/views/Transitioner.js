@@ -235,9 +235,14 @@ class Transitioner extends React.Component<Props, State> {
       this.props.onTransitionEnd &&
         this.props.onTransitionEnd(this._transitionProps, prevTransitionProps);
       if (this._queuedTransition) {
+        const nextScenes = NavigationScenesReducer(
+          this._transitionProps.scenes,
+          this._queuedTransition.nextProps.navigation.state,
+          this.props.navigation.state
+        );
         this._startTransition(
           this._queuedTransition.nextProps,
-          this._queuedTransition.nextScenes,
+          nextScenes,
           this._queuedTransition.indexHasChanged
         );
         this._queuedTransition = null;
