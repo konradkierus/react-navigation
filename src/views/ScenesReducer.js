@@ -191,3 +191,7 @@ export default function ScenesReducer(
   // scenes haven't changed.
   return scenes;
 }
+
+export {
+  areScenesShallowEqual
+}

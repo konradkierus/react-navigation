@@ -6,7 +6,7 @@ import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 import invariant from '../utils/invariant';
 
-import NavigationScenesReducer from './ScenesReducer';
+import NavigationScenesReducer, { areScenesShallowEqual } from './ScenesReducer';
 
 import type {
   NavigationLayout,
@@ -100,9 +100,9 @@ class Transitioner extends React.Component<Props, State> {
 
   componentWillReceiveProps(nextProps: Props): void {
     const nextScenes = NavigationScenesReducer(
-      this._queuedTransition ? this._queuedTransition.nextScenes : this.state.scenes,
+      this.state.scenes,
       nextProps.navigation.state,
-      this._queuedTransition ? this._queuedTransition.nextProps.navigation.state : this.props.navigation.state
+      this.props.navigation.state
     );
 
     if (nextScenes === this.state.scenes) {
@@ -227,6 +227,7 @@ class Transitioner extends React.Component<Props, State> {
     const nextState = {
       ...this.state,
       scenes: this.state.scenes.filter(isSceneNotStale),
+      staleScenes: this.state.scenes.filter(s => !isSceneNotStale(s))
     };
 
     this._transitionProps = buildTransitionProps(this.props, nextState);
@@ -235,6 +236,19 @@ class Transitioner extends React.Component<Props, State> {
       this.props.onTransitionEnd &&
         this.props.onTransitionEnd(this._transitionProps, prevTransitionProps);
       if (this._queuedTransition) {
+        const staleScenes = nextState.staleScenes;
+        if (staleScenes) {
+          this._queuedTransition.nextScenes = this._queuedTransition.nextScenes.filter(nextScene => {
+            let removeScene = false;
+            for (const staleScene of staleScenes) {
+              if (areScenesShallowEqual(nextScene, staleScene)) {
+                removeScene = true;
+                break;
+              }
+            }
+            return !removeScene;
+          })
+        }
         this._startTransition(
           this._queuedTransition.nextProps,
           this._queuedTransition.nextScenes,
